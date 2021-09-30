@@ -18,7 +18,8 @@ void main() {
     final assets =
         await PlatformAssetBundle.build(metadata: 'cucumber/features');
     expect(
-        () async => await assets.loadString('test/features/not-exists.feature'),
+        () async =>
+            await assets.loadString('test/features/not-exists.feature'),
         throwsException);
   });
 }
