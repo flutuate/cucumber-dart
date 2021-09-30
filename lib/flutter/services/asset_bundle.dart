@@ -1,11 +1,12 @@
+import 'package:collection/collection.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:path/path.dart' as path;
 import 'dart:typed_data';
 
 import 'package:cucumber_dart/flutter.dart';
-
-//import 'binding.dart';
+import 'package:yaml/yaml.dart';
 
 /// A collection of resources used by the application.
 ///
@@ -63,10 +64,10 @@ abstract class AssetBundle {
   /// [Utf8Codec] will be used for decoding the string. If the string is
   /// larger than 50 KB, the decoding process is delegated to an
   /// isolate to avoid jank on the main thread.
-  Future<String> loadString(String key, { bool cache = true }) async {
+  Future<String> loadString(String key, {bool cache = true}) async {
     final ByteData? data = await load(key);
     if (data == null) {
-      throw FlutterError('Unable to load asset: $key');
+      throw Exception('Unable to load asset: $key');
     }
     // 50 KB of data should take 2-3 ms to parse on a Moto G4, and about 400 μs
     // on a Pixel 4.
@@ -87,27 +88,72 @@ abstract class AssetBundle {
   ///
   /// Implementations may cache the result, so a particular key should only be
   /// used with one parser for the lifetime of the asset bundle.
-  Future<T> loadStructuredData<T>(String key, Future<T> Function(String value) parser);
+  Future<T> loadStructuredData<T>(
+      String key, Future<T> Function(String value) parser);
 
   /// If this is a caching asset bundle, and the given key describes a cached
   /// asset, then evict the asset from the cache so that the next time it is
   /// loaded, the cache will be reread from the asset bundle.
-  void evict(String key) { }
+  void evict(String key) {}
 
   @override
   String toString() => '${describeIdentity(this)}()';
 }
 
-class DartAssetBundle extends AssetBundle
+class PlatformAssetBundle extends AssetBundle
 {
+  static const notFound = -1;
+  static const _pubspec = 'pubspec.yaml';
+  static String _packagePath = '';
+
+  static Future<AssetBundle> build({String metadata=''}) async {
+    _packagePath = Directory.current.path;
+    final pubspecPath = _packagePath + path.separator + _pubspec;
+    var text = await File(pubspecPath).readAsString();
+    var yaml = loadYaml(text);
+    if( metadata.isNotEmpty ) {
+      yaml = _parseMetadata(yaml, metadata);
+    }
+    if( yaml is YamlList ) {
+      yaml = _parseAndSortList(yaml);
+    }
+    else {
+      yaml = <String>[];
+    }
+    return PlatformAssetBundle._(metadata.isEmpty ? _pubspec : metadata, yaml);
+  }
+
+  static dynamic _parseMetadata(dynamic yaml, String metadata) {
+    final keys = metadata.split('/');
+    for( var key in keys ) {
+      yaml = yaml[key];
+    }
+    return yaml;
+  }
+
+  static List<String> _parseAndSortList(YamlList yaml) {
+    return yaml.map((element) => element.toString()).toList()..sort();
+  }
+
+  final String metadata;
+
+  final List<String> _assets;
+
+  PlatformAssetBundle._(this.metadata, this._assets);
+
   @override
-  Future<ByteData> load(String key) {
-    // TODO: implement load
-    throw UnimplementedError();
+  Future<ByteData> load(String key) async {
+    if( binarySearch(_assets, key) == notFound ) {
+      throw Exception('Unable to load asset: $key');
+    }
+    final filepath = _packagePath + path.separator + key;
+    Uint8List bytes = await File(filepath).readAsBytes();
+    return ByteData.view(bytes.buffer);
   }
 
   @override
-  Future<T> loadStructuredData<T>(String key, Future<T> Function(String value) parser) {
+  Future<T> loadStructuredData<T>(
+      String key, Future<T> Function(String value) parser) {
     // TODO: implement loadStructuredData
     throw UnimplementedError();
   }

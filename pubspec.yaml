@@ -8,6 +8,8 @@ environment:
   sdk: '>=2.14.2 <3.0.0'
 
 dependencies:
+  path: ^1.8.0
+  yaml: ^3.1.0
   gherkin:
     path: ../cucumber-common/gherkin/dart
     #git:
@@ -18,3 +20,6 @@ dev_dependencies:
   lints: ^1.0.1
   test: any
 
+cucumber:
+  features:
+    - test/features/calc.feature

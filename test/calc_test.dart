@@ -1,7 +1,7 @@
 import 'package:cucumber_dart/core.dart';
 import 'package:test/test.dart';
 
-import 'src/Calc.dart';
+import 'src/calc.dart';
 
 void main()
 {
