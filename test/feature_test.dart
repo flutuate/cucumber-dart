@@ -1,3 +1,5 @@
+import 'dart:isolate';
+
 import 'package:cucumber_dart/core.dart';
 import 'package:test/test.dart';
 import 'src/Calc.dart';
@@ -5,9 +7,10 @@ import 'src/Calc.dart';
 void main()
 {
   test('Load feature file', ()
-  {
-    final path = 'features/Calc.feature';
+  async {
+    final path = 'test/features/Calc.feature';
     final feature = loadFeature(path);
+    print(feature);
   });
 }
 

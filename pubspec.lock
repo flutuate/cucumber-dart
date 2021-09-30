@@ -102,10 +102,10 @@ packages:
   gherkin:
     dependency: "direct main"
     description:
-      path: "../gherkin"
+      path: "../cucumber-common/gherkin/dart"
       relative: true
     source: path
-    version: "0.0.1"
+    version: "0.0.2"
   glob:
     dependency: transitive
     description:

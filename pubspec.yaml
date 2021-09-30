@@ -7,14 +7,14 @@ publish_to: 'none'
 environment:
   sdk: '>=2.14.2 <3.0.0'
 
-
 dependencies:
   gherkin:
-    path: ../gherkin
+    path: ../cucumber-common/gherkin/dart
     #git:
       #url: https://github.com/cucumber/common.git
       #path: gherkin/dart
 
 dev_dependencies:
-  lints: ^1.0.0
+  lints: ^1.0.1
   test: any
+

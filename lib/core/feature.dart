@@ -9,13 +9,14 @@ void feature(String path, void Function() body) async {
   test('bla', body);
 }
 
-Future<Envelope> loadFeature(String path) {
+Future<Envelope> loadFeature(String path) async {
   final idGenerator = IdGenerator.incrementingGenerator;
-  final paths = const <String>['test/assets/testdata/good/minimal.feature'];
+  final paths = <String>[path];
   final includeSource = false;
   final includeAst = true;
   final includePickles = true;
-  return Gherkin.fromPaths(paths, includeSource, includeAst
-      , includePickles, idGenerator).first;
+  final stream = await Gherkin.fromPaths(paths, includeSource, includeAst
+      , includePickles, idGenerator);
+  return stream.first;
 }
 
