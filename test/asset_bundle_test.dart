@@ -1,5 +1,9 @@
+import 'dart:convert';
+
 import 'package:cucumber_dart/flutter.dart';
 import 'package:test/test.dart';
+
+import 'src/user.dart';
 
 void main() {
   test('Load pubspec.yaml from package root dir', () async {
@@ -14,7 +18,7 @@ void main() {
     expect(text, isNotEmpty);
   });
 
-  test('Load string from asset not declared cause error', () async {
+  test('Load string from not declared asset causes error', () async {
     final assets =
         await PlatformAssetBundle.build(metadata: 'cucumber/features');
     expect(
@@ -22,4 +26,15 @@ void main() {
             await assets.loadString('test/features/not-exists.feature'),
         throwsException);
   });
+
+  test('Load structured data from json asset file', () async {
+    final assets =
+    await PlatformAssetBundle.build(metadata: 'test/assets');
+    final user = await assets.loadStructuredData<User>('test/json/user.json',
+        (value) => Future.value(User.fromJson(jsonDecode(value)))
+    );
+    expect(user.name, equals('John Doe'));
+    expect(user.age, equals(45));
+  });
+
 }

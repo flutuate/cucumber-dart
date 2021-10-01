@@ -1,12 +1,12 @@
-import 'package:collection/collection.dart';
+// Copyright 2014 The Flutter Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
-import 'package:path/path.dart' as path;
 import 'dart:typed_data';
 
 import 'package:cucumber_dart/flutter.dart';
-import 'package:yaml/yaml.dart';
 
 /// A collection of resources used by the application.
 ///
@@ -100,61 +100,3 @@ abstract class AssetBundle {
   String toString() => '${describeIdentity(this)}()';
 }
 
-class PlatformAssetBundle extends AssetBundle
-{
-  static const notFound = -1;
-  static const _pubspec = 'pubspec.yaml';
-  static String _packagePath = '';
-
-  static Future<AssetBundle> build({String metadata=''}) async {
-    _packagePath = Directory.current.path;
-    final pubspecPath = _packagePath + path.separator + _pubspec;
-    var text = await File(pubspecPath).readAsString();
-    var yaml = loadYaml(text);
-    if( metadata.isNotEmpty ) {
-      yaml = _parseMetadata(yaml, metadata);
-    }
-    if( yaml is YamlList ) {
-      yaml = _parseAndSortList(yaml);
-    }
-    else {
-      yaml = <String>[];
-    }
-    return PlatformAssetBundle._(metadata.isEmpty ? _pubspec : metadata, yaml);
-  }
-
-  static dynamic _parseMetadata(dynamic yaml, String metadata) {
-    final keys = metadata.split('/');
-    for( var key in keys ) {
-      yaml = yaml[key];
-    }
-    return yaml;
-  }
-
-  static List<String> _parseAndSortList(YamlList yaml) {
-    return yaml.map((element) => element.toString()).toList()..sort();
-  }
-
-  final String metadata;
-
-  final List<String> _assets;
-
-  PlatformAssetBundle._(this.metadata, this._assets);
-
-  @override
-  Future<ByteData> load(String key) async {
-    if( binarySearch(_assets, key) == notFound ) {
-      throw Exception('Unable to load asset: $key');
-    }
-    final filepath = _packagePath + path.separator + key;
-    Uint8List bytes = await File(filepath).readAsBytes();
-    return ByteData.view(bytes.buffer);
-  }
-
-  @override
-  Future<T> loadStructuredData<T>(
-      String key, Future<T> Function(String value) parser) {
-    // TODO: implement loadStructuredData
-    throw UnimplementedError();
-  }
-}
